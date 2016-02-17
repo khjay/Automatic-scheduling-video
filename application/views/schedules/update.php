@@ -55,7 +55,7 @@
                               <button type="button" class="btn btn-default btn-sm" id="btn_add" data-toggle="modal" data-target="#modal_add">加入</button>
                               <button type="button" class="btn btn-default btn-sm" id="btn_del">刪除</button>
                               <button type="button" class="btn btn-default btn-sm" id="btn_upd">更新</button>
-                              <button type="button" class="btn btn-default btn-sm" id="btn_refresh">自動排列</button>
+                              <button type="button" class="btn btn-default btn-sm" id="btn_setting" data-toggle="modal" data-target="#modal_set">設定</button>
                             </div>
                           </div>
                         </div>
@@ -185,10 +185,36 @@
               <input type="text" class="form-control" id="update_end_time" readonly>
             </div>
           </div>
-        </div>
+        </form>
+      </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
         <button type="button" class="btn btn-primary" id="modal_update_confirm">更新</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- VideoSetting -->
+<div class="modal fade" id="modal_set" tabindex="-1" role="dialog" aria-labelledby="setModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="exampleModalLabel">系統設定</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label for="videoOffset" class="col-sm-3 control-label">影像間隔</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="videoOffset">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="btn_systemConfirm">保存</button>
       </div>
     </div>
   </div>
@@ -197,138 +223,11 @@
 <script src="https://cdn.datatables.net/1.10.10/js/dataTables.bootstrap.min.js"></script>
 <script src="https://cdn.datatables.net/select/1.1.0/js/dataTables.select.min.js"></script>
 <script src="https://rawgit.com/digitalBush/jquery.maskedinput/1.4.1/dist/jquery.maskedinput.min.js"></script>
+<script src="<?php echo base_url('public/dist/js/schedule.js');?>"></script>
 <script>
   $(function() {
-    disabledRowMove();
-    var videoList = $('#videoTable').DataTable( {
-      select: {
-        style:    'multi',
-      },
-      "bLengthChange": false,
-      // "iDisplayLength": 5,
-      // "bInfo": false,
-      "language": {
-        "sProcessing":      "處理中...",
-        "sLoadingRecords":  "載入中...",
-        "sLengthMenu":      "顯示 _MENU_ 項結果",
-        "sZeroRecords":     "沒有符合的結果",
-        "sInfo":            "顯示第 _START_ 至 _END_ 項結果，共 _TOTAL_ 項",
-        "sInfoEmpty":       "顯示第 0 至 0 項結果，共 0 項",
-        "sInfoFiltered":    "(從 _MAX_ 項結果中過濾)",
-        "sInfoPostFix":     "",
-        "sSearch":          "搜尋:",
-        "sUrl":             "",
-        "oPaginate": {
-          "sFirst":    "第一頁",
-          "sPrevious": "上一頁",
-          "sNext":     "下一頁",
-          "sLast":     "最後一頁"
-        },
-        "oAria": {
-          "sSortAscending":  ": 升冪排列",
-          "sSortDescending": ": 降冪排列"
-        },
-        select: {
-          rows: "已選取 %d 列",
-        }
-      }
-    });
-
-    $(document).on('click', '#modal_add_confirm', function() {
-      $.each(videoList.rows('.selected').data(), function(key, value) {
-        var moveUp = "<button type='button' class='btn btn-default moveUp'><span class='glyphicon glyphicon-arrow-up' aria-hidden='true'></span>上移</button>";
-        var moveDown = "<button type='button' class='btn btn-default moveDown'><span class='glyphicon glyphicon-arrow-down' aria-hidden='true'></span>下移</button>";
-        var tr2Append = "<tr><td>" + value[0] + "</td><td>" + value[1] + "</td><td>" + value[2] + "</td><td>00:00:00</td><td>" + value[2] + "</td><td>" + moveUp + moveDown + "</td></tr>";
-        $("#playList tbody").append(tr2Append);
-      });
-      videoList.rows('.selected').deselect();
-      
-      $("#modal_add").modal('toggle');
-      disabledRowMove();
-    });
-
-    $(document).on('click', '#playList tbody tr', function() {
-      if($("#playList tbody tr.success").length) {
-        if($(this).hasClass('success'))
-          $(this).removeClass('success');
-        else {
-          $("#playList tbody tr").removeClass('success');
-          $(this).addClass('success');
-        }
-      }
-      else
-        $(this).addClass('success');
-    });
-
-    $(document).on('click', '#btn_del', function() {
-      if($("#playList tbody tr.success").length == 0)
-        swal("糟糕...", "您尚未選取任何列!!!", "warning");
-      else {
-        $("#playList tbody tr.success").remove();
-        disabledRowMove();
-      }
-    });
-
-    $(document).on('click', "#btn_upd", function() {
-      if($("#playList tbody tr.success").length == 0)
-        swal("糟糕...", "您尚未選取任何列!!!", "warning");
-      else {
-        $("#modal_upd").modal('toggle');
-        var selectedTitle = $("#playList tbody tr.success td:nth-child(2)").text();
-        var selectedVideoLength = $("#playList tbody tr.success td:nth-child(3)").text();
-        var selectedStartTime = $("#playList tbody tr.success td:nth-child(4)").text();
-        var selectedEndTime = $("#playList tbody tr.success td:nth-child(5)").text();
-        var selectedId = $("#playList tbody tr.success td:nth-child(1)").text();
-        $("#modal_upd").find('.modal-title').text('更新影片: ' + selectedTitle);
-        $("#update_title").val(selectedTitle);
-        $("#update_video_id").val(selectedId);
-        $("#update_video_length").val(selectedVideoLength);
-        $("#update_start_time").val(selectedStartTime);
-        $("#update_end_time").val(selectedEndTime);
-      }
-    });
-    $("#update_start_time").focus( function (){
-      $("#update_start_time").mask("99:99:99");
-    });
-    
-    $("#start_time").focus(function() {
-      $("#start_time").mask("")
-    })
-
-    $(document).on('change', '#update_start_time', function() {
-      if($(this).val().length == 8) {
-        var start_seconds = HmsToSecond($(this).val());
-        var duration_seconds = HmsToSecond($("#update_video_length").val());
-        $("#update_end_time").val(secondsToHms(start_seconds + duration_seconds));
-      }
-    });
-
-    $(document).on('click', '#modal_update_confirm', function() {
-      $("#playList tbody tr.success td:nth-child(4)").text($("#update_start_time").val());
-      $("#playList tbody tr.success td:nth-child(5)").text($("#update_end_time").val());
-      autoSorting();
-      $("#modal_upd").modal('hide');
-    });
-
-    $(document).on('click', '.moveUp', function() {
-      var row = $(this).parents('tr');
-      row.insertBefore(row.prev());
-      disabledRowMove();
-    });
-
-    $(document).on('click', '.moveDown', function() {
-      var row = $(this).parents('tr');
-      row.insertAfter(row.next());
-      disabledRowMove();
-    });
-
-    $(document).on('click', '#btn_refresh', function() {
-      autoSorting();
-    });
-
     $(document).on('click', '#schedule_add_confirm', function(e) {
       e.preventDefault();
-      autoSorting();
       var tableRow = [];
       if(!$.trim($("#title").val())) {
         sweetAlert("糟糕...", "您似乎未輸入排程標題", "error");
@@ -343,70 +242,44 @@
         return false;
       }
       else {
-        var time_max = HmsToSecond($("#playList tbody tr:first").children()[4].innerHTML);
-        var videoConflict = false;
         $.each($("#playList tbody tr"), function(key, value) {
           var tmpRow = {'vid': $(this).children()[0].innerHTML, 'startTime': $(this).children()[3].innerHTML, 'endTime': $(this).children()[4].innerHTML};
           tableRow.push(tmpRow);
-          if(key == 0) return ;
-          var startTime = HmsToSecond($(this).children()[3].innerHTML);
-          var endTime = HmsToSecond($(this).children()[4].innerHTML);
-          if(startTime < time_max) {
-            sweetAlert("糟糕...", "您的影片：" + $(this).children()[1].innerHTML + " 似乎與其他影片的播放時間衝突", "error");
-            videoConflict = true;
-            return false;
-          }
-          else {
-            time_max = endTime;
+        });
+        var title = $.trim($("#title").val());
+        var description = $.trim($("#description").val());
+        var datetime = $.trim($("#datetimepicker1").find('input').val());
+        $.ajax({
+          url: "<?php echo base_url();?>Schedule/update_confirm/<?php echo $schedule_data['main'][0]['id'];?>",
+          type: 'POST',
+          data: {title: title, description: description, datetime: datetime, tableRow: tableRow},
+          dataType: 'text',
+          success: function(msg) {
+            var response;
+            try {
+              response = JSON.parse(msg);
+            }
+            catch(e) {
+              swal("糟糕...", "出現不可預期的錯誤: " + e, "error");
+            }
+            $("#schedule_add_confirm").text("送出");
+            $("#schedule_add_confirm").prop('disabled', false);
+            if(response[0] == 0) {
+              swal({
+                title: "更新成功",
+                type: "success"
+              },function(){
+                location.href="<?php echo base_url('Schedule');?>";
+              });
+            }
+          },
+          beforeSend: function() {
+            $("#schedule_add_confirm").text("處理中...");
+            $("#schedule_add_confirm").prop('disabled', true);
           }
         });
-        // Everything is ok!!
-        if(!videoConflict) {
-          var title = $.trim($("#title").val());
-          var description = $.trim($("#description").val());
-          var datetime = $.trim($("#datetimepicker1").find('input').val());
-          $.each
-          $.ajax({
-            url: "<?php echo base_url();?>Schedule/update_confirm/<?php echo $schedule_data['main'][0]['id'];?>",
-            type: 'POST',
-            data: {title: title, description: description, datetime: datetime, tableRow: tableRow},
-            dataType: 'text',
-            success: function(msg) {
-console.log(msg);
-              var response;
-              try {
-                response = JSON.parse(msg);
-              }
-              catch(e) {
-                swal("糟糕...", "出現不可預期的錯誤: " + e, "error");
-              }
-              $("#schedule_add_confirm").text("送出");
-              $("#schedule_add_confirm").prop('disabled', false);
-              if(response[0] == 0) {
-                swal({
-                  title: "更新成功",
-                  type: "success"
-                },function(){
-                  location.href="<?php echo base_url('Schedule');?>";
-                });
-              }
-
-            },
-            beforeSend: function() {
-              $("#schedule_add_confirm").text("處理中...");
-              $("#schedule_add_confirm").prop('disabled', true);
-            }
-          });
-        }
       }
     });
-         
-    $('#datetimepicker1').datetimepicker({
-      viewMode: 'years',
-      format: 'YYYY-MM-DD',
-      minDate: new Date().yyyymmdd()
-    });
-
     $(document).on('click', 'button[type=reset]', function() {
       var table_json = <?php echo json_encode($schedule_data['info']);?>;
       $.each($("#playList tbody tr"), function(key, value) {
@@ -417,52 +290,5 @@ console.log(msg);
         $(this).children()[4].innerHTML = table_json[key]['endTime'];
       });
     })
-
-    function secondsToHms(d) {
-      d = Number(d);
-      var h = Math.floor(d / 3600);
-      var m = Math.floor(d % 3600 / 60);
-      var s = Math.floor(d % 3600 % 60);
-      return ( ((h < 10 ? "0" : "") + h) + ":" + ((m < 10 ? "0" : "") + m) + ":" + ((s < 10 ? "0" : "") + s) );
-    }
-
-    function HmsToSecond(d) {
-      var a = d.split(':');
-      if( (+a[0]) > 23 || (+a[1]) > 59 || (+a[2] > 59) ) {
-        swal("糟糕...", "您的時間格式似乎不合規定!!!", "warning");
-        $("#update_start_time").val('00:00:00');
-        return 0;
-      }
-      else
-       return (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]);
-    }
-
-    function autoSorting() {
-      var rows = $('#playList tbody tr').get();
-      rows.sort(function(a, b) {
-        var A = $(a).children('td').eq(4).text().toUpperCase();
-        var B = $(b).children('td').eq(4).text().toUpperCase();
-        if(A < B) {
-          return -1;
-        }
-
-        if(A > B) {
-          return 1;
-        }
-        return 0;
-      });
-
-      $.each(rows, function(index, row) {
-        $('#playList').children('tbody').append(row);
-      });
-      disabledRowMove();
-    }
-
-    function disabledRowMove() {
-      $('.moveUp').prop('disabled', false);
-      $('.moveDown').prop('disabled', false);
-      $('#playList tbody tr:first .moveUp').prop('disabled', true);
-      $('#playList tbody tr:last .moveDown').prop('disabled', true);
-    }
   });
 </script>
