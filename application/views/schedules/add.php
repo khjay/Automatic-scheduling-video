@@ -312,9 +312,16 @@
     });
 
     $(document).on('click', '#modal_update_confirm', function() {
-      $("#playList tbody tr.success td:nth-child(4)").text($("#update_start_time").val().replace("點 ", ":").replace("分", ":00"));
-      $("#playList tbody tr.success td:nth-child(5)").text($("#update_end_time").val().replace("點 ", ":").replace("分 ", ":").replace("秒", ""));
-      tableRefactor($("#playList tbody tr.success").index());
+      var updateStartTime = $("#update_start_time").val().replace("點 ", ":").replace("分", ":00");
+      var updateEndTime = $("#update_end_time").val().replace("點 ", ":").replace("分 ", ":").replace("秒", "");
+      if(HmsToSecond(updateStartTime) <= HmsToSecond($("#playList tbody tr.success").prev().children()[4].innerHTML)) {
+        tableRefactor($("#playList tbody tr.success").index()-1);
+      }
+      else {
+        $("#playList tbody tr.success td:nth-child(4)").text(updateStartTime);
+        $("#playList tbody tr.success td:nth-child(5)").text(updateStartTime);
+        tableRefactor($("#playList tbody tr.success").index());
+      }
       $("#modal_upd").modal('hide');
     });
 
@@ -437,7 +444,6 @@
 
     function tableRefactor(n) {
       n = typeof n !== 'undefined' ? n : -1;
-      console.log(n);
       var lastTR = "";
       $.each($("#playList tbody tr"), function(key, value) {
         if(key <= n) {
