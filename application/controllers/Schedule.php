@@ -28,7 +28,7 @@ class Schedule extends CI_Controller {
   public function index() {
     $this->load->view('common/head');
     $this->load->view('common/menu');
-    $restrict = $this->input->post("search_title", TRUE);
+    $restrict = $this->input->post("search_title", TRUE); $schedule_data = $this->Schedule_model->get_records($restrict);
     $schedule_data = $this->Schedule_model->get_records($restrict);
     $data = array(
       'schedule_data'=> count($schedule_data) == 0 ?  array() : $schedule_data ,
@@ -76,5 +76,16 @@ class Schedule extends CI_Controller {
   public function test() {
     echo shell_exec("which ffmpeg");
     echo 'haha';
+  }
+
+  public function timeline() {
+    $this->load->view('common/head');
+    $this->load->view('common/menu');
+    $schedule_data = $this->Schedule_model->get_records();
+    $data = array(
+      'schedule_data'=> count($schedule_data) == 0 ?  array() : $schedule_data ,
+    );
+    $this->load->view('schedules/timeline', $data);
+    $this->load->view('common/footer');
   }
 }
