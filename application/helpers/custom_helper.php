@@ -75,8 +75,13 @@ if ( ! function_exists('file_upload') ) {
 }
 
 if ( ! function_exists('formatLabel') ) {
-  function formatLabel($startTime, $endTime) {
+  function formatLabel($startDate, $startTime, $endTime) {
+    if($startDate == "-" && $startTime == "-" && $endTime == "-")
+      return "<span class='label label-default'>未設定</span>";
+
     $now = strtotime(date("Y-m-d H:i:s"));
+    $startTime  = strtotime($startDate + " " + $startTime);
+    $endTime    = strtotime($startDate + " " + $endTime);
     if ($startTime > $now)
       return "<span class='label label-info'>等待播放</span>";
     else if ($startTime <= $now && $endTime >= $now)

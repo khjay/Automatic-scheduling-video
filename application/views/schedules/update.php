@@ -38,15 +38,6 @@
                     <textarea id="description" name="description" class="form-control" rows="4"><?php echo $schedule_data['main'][0]['description'];?></textarea>
                   </div>
                   <div class="form-group">
-                    <label>播放時間</label>
-                    <div class='input-group date' id='datetimepicker1'>
-                    <input type='text' class="form-control" value="<?php echo $schedule_data['main'][0]['startDate'];?>"/>
-                      <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                      </span>
-                    </div>
-                  </div>
-                  <div class="form-group">
                     <div class="panel panel-info">
                         <div class="panel-heading">
                           撥放清單
@@ -92,7 +83,8 @@
                     </div>
                   </div>
                   <br/>
-                  <input type="hidden" value="<?php echo $schedule_data['main'][0]['id'];?>">
+                  <input type="hidden" id="startDate" value="<?php echo $schedule_data['main'][0]['startDate'];?>">
+                  <input type="hidden" id="startTime" value="<?php echo $schedule_data['main'][0]['startTime'];?>">
                   <button type="submit" class="btn btn-primary btn-lg" id="schedule_add_confirm" style="margin-right: 25px">送出</button>
                   <button type="reset" class="btn btn-success btn-lg">回復原始設定</button>
                 </form>
@@ -228,13 +220,8 @@
   $(function() {
     $(document).on('click', '#schedule_add_confirm', function(e) {
       e.preventDefault();
-      var tableRow = [];
       if(!$.trim($("#title").val())) {
         sweetAlert("糟糕...", "您似乎未輸入排程標題", "error");
-        return false;
-      }
-      else if(!$("#datetimepicker1 input").val()) {
-        sweetAlert("糟糕...", "您還沒選擇排程的播放時間", "error");
         return false;
       }
       else if(!$("#playList tbody tr").length) {
@@ -242,19 +229,22 @@
         return false;
       }
       else {
+        var tableRow = [];
         $.each($("#playList tbody tr"), function(key, value) {
           var tmpRow = {'vid': $(this).children()[0].innerHTML, 'startTime': $(this).children()[3].innerHTML, 'endTime': $(this).children()[4].innerHTML};
           tableRow.push(tmpRow);
         });
         var title = $.trim($("#title").val());
         var description = $.trim($("#description").val());
-        var datetime = $.trim($("#datetimepicker1").find('input').val());
+        var startDate = $.trim($("#startDate").val());
+        var startTime = $.trim($("#startTime").val());
         $.ajax({
           url: "<?php echo base_url();?>Schedule/update_confirm/<?php echo $schedule_data['main'][0]['id'];?>",
           type: 'POST',
-          data: {title: title, description: description, datetime: datetime, tableRow: tableRow},
+          data: {title: title, description: description, startDate: startDate, startTime: startTime, tableRow: tableRow},
           dataType: 'text',
           success: function(msg) {
+            console.log(msg);
             var response;
             try {
               response = JSON.parse(msg);
@@ -280,15 +270,9 @@
         });
       }
     });
+
     $(document).on('click', 'button[type=reset]', function() {
-      var table_json = <?php echo json_encode($schedule_data['info']);?>;
-      $.each($("#playList tbody tr"), function(key, value) {
-        $(this).children()[0].innerHTML = table_json[key]['vid'];
-        $(this).children()[1].innerHTML = table_json[key]['title'];
-        $(this).children()[2].innerHTML = table_json[key]['video_length'];
-        $(this).children()[3].innerHTML = table_json[key]['startTime'];
-        $(this).children()[4].innerHTML = table_json[key]['endTime'];
-      });
+      location.reload();
     })
   });
 </script>

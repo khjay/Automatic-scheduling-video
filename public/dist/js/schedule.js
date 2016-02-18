@@ -66,6 +66,7 @@ $(function() {
       swal("糟糕...", "您尚未選取任何列!!!", "warning");
     else {
       $("#playList tbody tr.success").remove();
+      tableRefactor();
       disabledRowMove();
     }
   });
@@ -147,12 +148,6 @@ $(function() {
     disabledRowMove();
   });
 
-  $('#datetimepicker1').datetimepicker({
-    viewMode: 'years',
-    format: 'YYYY-MM-DD',
-    minDate: new Date().yyyymmdd()
-  });
-  
   $('#videoOffset').datetimepicker({
     format: 'HH小時 mm分鐘'
   });

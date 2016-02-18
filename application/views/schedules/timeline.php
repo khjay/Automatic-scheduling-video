@@ -44,10 +44,10 @@
                   <td><?php echo $schedule_item['id']; ?></td>
                   <td><?php echo $schedule_item['title']; ?></td>
                   <td><?php echo $schedule_item['startDate']; ?></td>
-                  <td><?php echo trim(str_replace($schedule_item['startDate'], '', $schedule_item['startTime'])); ?></td>
-                  <td><?php echo trim(str_replace($schedule_item['startDate'], '', $schedule_item['endTime'])); ?></td>
-                  <td><?php echo formatLabel(strtotime($schedule_item['startTime']), strtotime($schedule_item['endTime'])); ?></td>
-                  <td><?php echo $schedule_item['s_diff'];?></td>
+                  <td><?php echo $schedule_item['startTime']; ?></td>
+                  <td><?php echo $schedule_item['endTime']; ?></td>
+                  <td><?php echo formatLabel($schedule_item['startDate'], $schedule_item['startTime'], $schedule_item['endTime']); ?></td>                  
+                  <td><?php echo $schedule_item['duration'];?></td>
                 </tr>
               <?php endforeach ?>
             </tbody>
@@ -58,8 +58,8 @@
   </div>
   <div class="row">
   <div class="col-md-12 col-lg-12">
-    <button class="btn btn-lg btn-primary" style="margin-right: 25px;">更新</button>
-    <button class="btn btn-lg btn-danger">取消</button>
+    <button class="btn btn-lg btn-primary" id="btn_save_job"style="margin-right: 25px;">更新</button>
+    <button class="btn btn-lg btn-success" type="reset">回復原始設定</button>
   </div>
 </div>
 </div>
@@ -130,14 +130,20 @@ $(function() {
     else {
       var selectedTitle = $("#scheduleList tbody tr.success td:nth-child(2)").text();
       var selectedStartDate = $("#scheduleList tbody tr.success td:nth-child(3)").text();
-      var selectedStartTime = $("#scheduleList tbody tr.success td:nth-child(4)").text().slice(0, -3).replace(":", "點 ") + "分";
-      var selectedEndTime = $("#scheduleList tbody tr.success td:nth-child(5)").text().replace(":", "點 ").replace(":", "分 ") + "秒"
+      var selectedStartTime = $("#scheduleList tbody tr.success td:nth-child(4)").text();
+      var selectedEndTime = $("#scheduleList tbody tr.success td:nth-child(5)").text();
       var selectedId = $("#scheduleList tbody tr.success td:nth-child(1)").text();
       $("#modal_upd").find('.modal-title').text('編輯排程: ' + selectedTitle);
       $("#update_title").val(selectedTitle);
       $("#update_schedule_id").val(selectedId);
-      $("#update_start_date").val(selectedStartDate);
-      $("#update_start_time").val(selectedStartTime);
+      if(selectedStartDate == "-")
+        $("#update_start_date").prop('placeholder', '請選擇日期');
+      else
+        $("update_start_date").val(selectedStartDate);
+      if(selectedStartTime == "-")
+        $("#update_start_time").prop('placeholder', '請選擇播放時間');
+      else
+        $("update_start_time").val(selectedStartTime.slice(0, -3).replace(":", "點 ") + "分");
       $("#update_end_time").val(selectedEndTime);
       $("#modal_upd").modal('show');
     }
@@ -170,6 +176,23 @@ $(function() {
     tableRefactor();
     $("#modal_upd").modal('hide');
   });
+
+  $(document).on('click', 'button[type=reset]', function() {
+    location.href="<?php echo base_url('Schedule/timeline');?>"
+  })
+
+  $(document).on('click', '#btn_save_job', function() {
+    var datas = [];
+    $.each($("#scheduleList tbody tr"), function(index, row) {
+      tmp = {
+        'id': $(this).children()[0].innerHTML,
+        'startDate': $(this).children()[2].innerHTML,
+        'startTime': $(this).children()[3].innerHTML,
+      }
+      datas.push(tmp);
+    });
+    console.log(datas);
+  })
 
   function HmsToSecond(d) {
     var a = d.split(':');

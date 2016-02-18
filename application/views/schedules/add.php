@@ -38,15 +38,6 @@
                     <textarea id="description" name="description" class="form-control" rows="4"></textarea>
                   </div>
                   <div class="form-group">
-                    <label>播放時間</label>
-                    <div class='input-group date' id='datetimepicker1'>
-                      <input type='text' class="form-control" />
-                      <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                      </span>
-                    </div>
-                  </div>
-                  <div class="form-group">
                     <div class="panel panel-info">
                         <div class="panel-heading">
                           撥放清單
@@ -219,10 +210,6 @@ $(function() {
       sweetAlert("糟糕...", "您似乎未輸入排程標題", "error");
       return false;
     }
-    else if(!$("#datetimepicker1 input").val()) {
-      sweetAlert("糟糕...", "您還沒選擇排程的播放時間", "error");
-      return false;
-    }
     else if(!$("#playList tbody tr").length) {
       sweetAlert("糟糕...", "您的排程還未加入影片", "error");
       return false;
@@ -235,11 +222,10 @@ $(function() {
       });
       var title = $.trim($("#title").val());
       var description = $.trim($("#description").val());
-      var datetime = $.trim($("#datetimepicker1").find('input').val());
       $.ajax({
         url: "<?php echo base_url('Schedule/add_confirm'); ?>",
         type: 'POST',
-        data: {title: title, description: description, datetime: datetime, tableRow: tableRow},
+        data: {title: title, description: description, tableRow: tableRow},
         dataType: 'text',
         success: function(msg) {
           console.log(msg);
