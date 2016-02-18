@@ -18,7 +18,7 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 uploads/*
 PHP-FFMPEG/*
 *.swp
-
+.htaccess
 # IDE Files
 #-------------------------
 /nbproject/
