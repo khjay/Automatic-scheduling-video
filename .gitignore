@@ -19,7 +19,6 @@ uploads/*
 PHP-FFMPEG/*
 *.swp
 
-
 # IDE Files
 #-------------------------
 /nbproject/
