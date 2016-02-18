@@ -1,5 +1,6 @@
 <style>
-#scheduleList tr > *:nth-child(1) {
+#scheduleList tr > *:nth-child(1),
+#scheduleList tr > *:nth-child(7) {
   display: none;
 }
 </style>
@@ -34,17 +35,19 @@
                 <th>開始時間</th>
                 <th>結束時間</th>
                 <th>排程狀態</th>
+                <th>diff</th>
               </tr>
             </thead>
             <tbody>
               <?php foreach($schedule_data as $schedule_item): ?>
                 <tr>
-                  <th><?php echo $schedule_item['id']; ?></td>
+                  <td><?php echo $schedule_item['id']; ?></td>
                   <td><?php echo $schedule_item['title']; ?></td>
                   <td><?php echo $schedule_item['startDate']; ?></td>
-                  <td><?php echo str_replace($schedule_item['startDate'], '', $schedule_item['startTime']); ?></td>
-                  <td><?php echo str_replace($schedule_item['startDate'], '', $schedule_item['endTime']); ?></td>
+                  <td><?php echo trim(str_replace($schedule_item['startDate'], '', $schedule_item['startTime'])); ?></td>
+                  <td><?php echo trim(str_replace($schedule_item['startDate'], '', $schedule_item['endTime'])); ?></td>
                   <td><?php echo formatLabel(strtotime($schedule_item['startTime']), strtotime($schedule_item['endTime'])); ?></td>
+                  <td><?php echo $schedule_item['s_diff'];?></td>
                 </tr>
               <?php endforeach ?>
             </tbody>
@@ -53,6 +56,12 @@
       </div>
     </div>
   </div>
+  <div class="row">
+  <div class="col-md-12 col-lg-12">
+    <button class="btn btn-lg btn-primary" style="margin-right: 25px;">更新</button>
+    <button class="btn btn-lg btn-danger">取消</button>
+  </div>
+</div>
 </div>
 
 <!-- ScheduleUpdate -->
@@ -113,5 +122,92 @@ $(function() {
     else
       $(this).addClass('success');
   });
+
+  $(document).on('click', '#btn_upd', function() {
+    if(!$("#scheduleList tbody tr.success").length) {
+      swal("糟糕...", "您尚未選取任何列!!!", 'warning');
+    }
+    else {
+      var selectedTitle = $("#scheduleList tbody tr.success td:nth-child(2)").text();
+      var selectedStartDate = $("#scheduleList tbody tr.success td:nth-child(3)").text();
+      var selectedStartTime = $("#scheduleList tbody tr.success td:nth-child(4)").text().slice(0, -3).replace(":", "點 ") + "分";
+      var selectedEndTime = $("#scheduleList tbody tr.success td:nth-child(5)").text().replace(":", "點 ").replace(":", "分 ") + "秒"
+      var selectedId = $("#scheduleList tbody tr.success td:nth-child(1)").text();
+      $("#modal_upd").find('.modal-title').text('編輯排程: ' + selectedTitle);
+      $("#update_title").val(selectedTitle);
+      $("#update_schedule_id").val(selectedId);
+      $("#update_start_date").val(selectedStartDate);
+      $("#update_start_time").val(selectedStartTime);
+      $("#update_end_time").val(selectedEndTime);
+      $("#modal_upd").modal('show');
+    }
+  })
+    
+  $('#update_start_date').datetimepicker({
+    viewMode: 'years',
+    format: 'YYYY-MM-DD',
+    minDate: new Date().yyyymmdd()                  
+  });
+
+  $('#update_start_time').datetimepicker({
+    format: 'HH點 mm分'        
+  });
+
+  $("#update_start_time").on("dp.change", function (e) {
+    var start_seconds = HmsToSecond($("#update_start_time").val().replace("點 ", ":").replace("分", ":00"));
+    var scheduleDuration = parseInt($("#scheduleList tbody tr.success td:nth-child(7)").text());
+    $("#update_end_time").val(secondsToHms(start_seconds + scheduleDuration).replace(":", "點 ").replace(":", "分 ") + "秒");          
+  });
+
+  $(document).on('click', '#modal_update_confirm', function() {
+    var updateStartDate = $("#update_start_date").val();
+    var updateStartTime = $("#update_start_time").val().replace("點 ", ":").replace("分", ":00");
+    var updateEndTime = $("#update_end_time").val().replace("點 ", ":").replace("分 ", ":").replace("秒", "");
+    var selectedRow = $("#scheduleList tbody tr.success");
+    selectedRow.children()[2].innerHTML = updateStartDate;
+    selectedRow.children()[3].innerHTML = updateStartTime;
+    selectedRow.children()[4].innerHTML = updateEndTime;
+    tableRefactor();
+    $("#modal_upd").modal('hide');
+  });
+
+  function HmsToSecond(d) {
+    var a = d.split(':');
+    if( (+a[0]) > 23 || (+a[1]) > 59 || (+a[2] > 59) ) {
+      swal("糟糕...", "您的時間格式似乎不合規定!!!", "warning");
+      $("#update_start_time").val('00:00:00');
+      return 0;
+    }
+    else
+     return (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]);
+  }
+  
+  function secondsToHms(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+    return ( ((h < 10 ? "0" : "") + h) + ":" + ((m < 10 ? "0" : "") + m) + ":" + ((s < 10 ? "0" : "") + s) );
+  }
+
+  function tableRefactor() {
+    var rows = $('#scheduleList tbody tr').get();
+    rows.sort(function(a, b) {
+      var A = $(a).children('td').eq(2).text() + $(a).children('td').eq(3).text();
+      var B = $(b).children('td').eq(2).text() + $(b).children('td').eq(3).text();
+      if(A < B) {
+        return -1;
+      }
+
+      if(A > B) {
+        return 1;
+      }
+      return 0;
+    });
+
+    $.each(rows, function(index, row) {
+      $('#scheduleList').children('tbody').append(row);
+    });  
+  }
 })
 </script>
