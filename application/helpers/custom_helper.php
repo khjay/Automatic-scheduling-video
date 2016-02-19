@@ -79,9 +79,9 @@ if ( ! function_exists('formatLabel') ) {
     if($startDate == "-" && $startTime == "-" && $endTime == "-")
       return "<span class='label label-default'>未設定</span>";
 
-    $now = strtotime(date("Y-m-d H:i:s"));
-    $startTime  = strtotime($startDate + " " + $startTime);
-    $endTime    = strtotime($startDate + " " + $endTime);
+    $now = date("Y-m-d H:i:s");
+    $startTime  = $startDate . " " . $startTime;
+    $endTime    = $startDate . " " . $endTime;
     if ($startTime > $now)
       return "<span class='label label-info'>等待播放</span>";
     else if ($startTime <= $now && $endTime >= $now)
@@ -111,5 +111,23 @@ if (! function_exists('rmJob') ) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
     curl_exec($ch);
     curl_close($ch);
+  }
+}
+
+if (! function_exists('totalStart') ) {
+  function totalStart($t1, $t2) {
+    list($t1h, $t1m) = explode(":", $t1);
+    list($t2h, $t2m) = explode(":", $t2);
+    $total = ($t1h+$t2h) * 3600 + ($t1m+$t2m) * 60;
+    if($total / 3600 < 10)
+      $H = "0".floor($total/3600);
+    else
+      $H = floor($total/3600);
+    $total %= 3600;
+    if($total/60 < 10)
+      $M = "0".floor($total/60);
+    else
+      $M = floor($total/60);
+    return $H . ":" . $M;
   }
 }
