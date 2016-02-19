@@ -36,8 +36,6 @@ class Schedule_model extends CI_Model {
       $this->db->select('file_name')->from('videos')->where('id', $row['vid']);
       $query = $this->db->get()->result_array();
       $fileName = $query[0]['file_name'];
-      list($y, $m, $d) = explode("-", $startDate);
-      list($h, $mm, $s) = explode(":", $row['startTime']);
       $data[] = array('sid'=>$sid, 'vid'=>$row['vid'], 'startTime'=>$row['startTime'], 'endTime'=>$row['endTime']);
     }
     $tmp_cache = $this->db->last_query();
