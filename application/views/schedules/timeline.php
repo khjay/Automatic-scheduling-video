@@ -201,15 +201,32 @@ $(function() {
 
   $(document).on('click', '#btn_save_job', function() {
     var datas = [];
+    var firstRow = $("#scheduleList tbody tr:first");
+    var time_max = firstRow.children()[2].innerHTML + firstRow.children()[3].innerHTML;
+    var scheduleConflict = false;
     $.each($("#scheduleList tbody tr"), function(index, row) {
+      var rowID = $(this).children()[0].innerHTML;
+      var rowTitle = $(this).children()[1].innerHTML;
+      var rowStartDate = $(this).children()[2].innerHTML;
+      var rowStartTime = $(this).children()[3].innerHTML;
+      var rowEndTime = $(this).children()[4].innerHTML;
+      if(rowStartDate == "-" && rowStartTime == "-") return ;
+      if(rowStartDate + rowStartTime < time_max) {
+        sweetAlert("糟糕...", "您的排程：" + rowTitle + " 似乎與其他排程的播放時間衝突", "error");
+        scheduleConflict = true;
+        return false;                                      
+      }
+      else
+        time_max = rowStartDate + rowEndTime;
       tmp = {
-        'id': $(this).children()[0].innerHTML,
-        'startDate': $(this).children()[2].innerHTML,
-        'startTime': $(this).children()[3].innerHTML,
-        'endTime': $(this).children()[4].innerHTML
+        'id': rowID,
+        'startDate': rowStartDate,
+        'startTime': rowStartTime,
+        'endTime': rowEndTime
       }
       datas.push(tmp);
     });
+    if(scheduleConflict) return false;
     $.ajax({
       url: "<?php echo base_url('Schedule/timeline_confirm'); ?>",
       type: 'POST',
