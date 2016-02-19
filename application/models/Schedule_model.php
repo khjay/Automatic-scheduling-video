@@ -105,7 +105,10 @@ class Schedule_model extends CI_Model {
       list($h, $mm, $s) = explode(":", $row['startTime']);
       if($settingJob) {
         list($y, $m,  $d) = explode("-", $startDate);
-        $jid = setJob($fileName, "{$d}.{$m}.{$y}", "{$h}:{$mm}");
+        $scheduleStartTime = substr($startTime, 0, -3);
+        $videoStartTime = substr($row['startTime'], 0, -3);
+        $totalStart = totalStart($scheduleStartTime, $videoStartTime);
+        $jid = setJob($fileName, "{$d}.{$m}.{$y}", $totalStart);
       }
       else
         $jid = -1;
@@ -128,7 +131,27 @@ class Schedule_model extends CI_Model {
   }
 
   public function update_timeline() {
-    $schedules_data = $this->input->post('datas', true);
-    $this->db->update_batch('schedules', $schedules_data, 'id'); 
+    $schedules_main = $this->input->post('datas', true);
+    $schedules_info = array();
+    foreach($schedules_main as $schedules_item) {
+      $this->db->select('file_name, startTime, jobID, vid')->from('schedules_info');
+      $this->db->join('videos', 'videos.id = schedules_info.vid');
+      $this->db->where('sid', $schedules_item['id']);
+      $query = $this->db->get();
+      $info_datas = $query->result_array();
+      list($y, $m, $d) = explode('-', $schedules_item['startDate']);
+      $scheduleStartTime = substr($schedules_item['startTime'], 0, -3);
+      foreach($info_datas as $row) {
+        $videoStartTime = substr($row['startTime'], 0, -3);
+        $totalStart = totalStart($scheduleStartTime, $videoStartTime);
+        rmJob($row['jobID']);
+        $jid = setJob($row['file_name'], "{$d}.{$m}.{$y}", $totalStart);
+        $this->db->where(array('sid' => $schedules_item['id'], 'vid' => $row['vid']));
+        $this->db->update('schedules_info', array('jobID' => $jid));
+        $cache = $this->db->last_query();
+      }
+    }
+    $this->db->update_batch('schedules', $schedules_main, 'id'); 
+    //$this->db->update_batch('schedules_info', $schedules_info, array('sid, vid')); 
   }
 }
