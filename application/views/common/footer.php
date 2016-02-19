@@ -15,6 +15,7 @@
 
     <!-- moment -->
     <script src="<?php echo base_url('public/bower_components/moment/min/moment.min.js');?>"></script>
+    <script src="<?php echo base_url('public/bower_components/moment/locale/zh-tw.js');?>"></script>
 
     <!-- datetimepicker -->
     <script src="<?php echo base_url('public/bower_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js');?>"></script>
