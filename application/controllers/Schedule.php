@@ -74,7 +74,7 @@ class Schedule extends CI_Controller {
   }
 
   public function test() {
-    echo shell_exec("which ffmpeg");
+    echo shell_exec("which at");
     echo 'haha';
   }
 
@@ -87,5 +87,9 @@ class Schedule extends CI_Controller {
     );
     $this->load->view('schedules/timeline', $data);
     $this->load->view('common/footer');
+  }
+
+  public function timeline_confirm() {
+    $this->Schedule_model->update_timeline();
   }
 }

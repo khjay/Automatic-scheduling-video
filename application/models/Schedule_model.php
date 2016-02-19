@@ -22,9 +22,11 @@ class Schedule_model extends CI_Model {
     $title = trim($this->input->post('title', TRUE));
     $description = trim($this->input->post('description', TRUE));
     $tableRows = $this->input->post('tableRow', TRUE);
+    $duration = strtotime($tableRows[count($tableRows)-1]['endTime']) - strtotime($tableRows[0]['startTime']);
     $data = array(
       'title' => $title,
       'description' => $description,
+      'duration' => $duration
     );
     $query_result = $this->db->insert('schedules', $data);
     $sid = $this->db->insert_id();
@@ -68,9 +70,11 @@ class Schedule_model extends CI_Model {
     $startTime = trim($this->input->post('startTime', TRUE));
     $startDate = trim($this->input->post('startDate', TRUE));
     $tableRows = $this->input->post('tableRow', TRUE);
+    $duration = strtotime($tableRows[count($tableRows)-1]['endTime']) - strtotime($tableRows[0]['startTime']);
     $data = array(
       'title' => $title,
       'description' => $description,
+      'duration'  => $duration
     );
     if($startTime == "-" && $startDate == "-")
       $settingJob = false;
@@ -98,10 +102,11 @@ class Schedule_model extends CI_Model {
       $this->db->select('file_name')->from('videos')->where('id', $row['vid']);
       $query = $this->db->get()->result_array();
       $fileName = $query[0]['file_name'];
-      list($y, $m,  $d) = explode("-", $row['startDate']);
       list($h, $mm, $s) = explode(":", $row['startTime']);
-      if($settingJob)
+      if($settingJob) {
+        list($y, $m,  $d) = explode("-", $startDate);
         $jid = setJob($fileName, "{$d}.{$m}.{$y}", "{$h}:{$mm}");
+      }
       else
         $jid = -1;
       $data[] = array('sid'=>$id, 'vid'=>$row['vid'], 'startTime'=>$row['startTime'], 'endTime'=>$row['endTime'], 'jobID'=>$jid);
@@ -120,5 +125,10 @@ class Schedule_model extends CI_Model {
     $this->db->where('id', $id);
     $this->db->delete('schedules');
     echo $this->db->affected_rows();
+  }
+
+  public function update_timeline() {
+    $schedules_data = $this->input->post('datas', true);
+    $this->db->update_batch('schedules', $schedules_data, 'id'); 
   }
 }
