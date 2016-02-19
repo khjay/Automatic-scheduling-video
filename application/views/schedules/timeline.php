@@ -102,7 +102,7 @@
          </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-default" id="modal_cancel" data-dismiss="modal">取消</button>
         <button type="button" class="btn btn-primary" id="modal_update_confirm">更新</button>
       </div>
     </div>
@@ -128,6 +128,7 @@ $(function() {
       swal("糟糕...", "您尚未選取任何列!!!", 'warning');
     }
     else {
+      $('#update_start_time').data("DateTimePicker").clear();
       var selectedTitle = $("#scheduleList tbody tr.success td:nth-child(2)").text();
       var selectedStartDate = $("#scheduleList tbody tr.success td:nth-child(3)").text();
       var selectedStartTime = $("#scheduleList tbody tr.success td:nth-child(4)").text();
@@ -136,12 +137,19 @@ $(function() {
       $("#modal_upd").find('.modal-title').text('編輯排程: ' + selectedTitle);
       $("#update_title").val(selectedTitle);
       $("#update_schedule_id").val(selectedId);
-      if(selectedStartDate == "-")
+      if(selectedStartDate == "-") {
+        $("#update_start_date").val('');
         $("#update_start_date").prop('placeholder', '請選擇日期');
-      else
+        $("#update_start_date").data("DateTimePicker").clear();
+      }
+      else {
+        $('#update_start_date').data("DateTimePicker").date(selectedStartDate);
         $("update_start_date").val(selectedStartDate);
-      if(selectedStartTime == "-")
+      }
+      if(selectedStartTime == "-") {
+        $("#update_start_time").val(''); 
         $("#update_start_time").prop('placeholder', '請選擇播放時間');
+      }
       else
         $("update_start_time").val(selectedStartTime.slice(0, -3).replace(":", "點 ") + "分");
       $("#update_end_time").val(selectedEndTime);
@@ -150,12 +158,14 @@ $(function() {
   })
     
   $('#update_start_date').datetimepicker({
+    locale: 'zh-tw',
     viewMode: 'years',
     format: 'YYYY-MM-DD',
     minDate: new Date().yyyymmdd()                  
   });
 
   $('#update_start_time').datetimepicker({
+    locale: 'zh-tw',
     format: 'HH點 mm分'        
   });
 
@@ -169,6 +179,14 @@ $(function() {
     var updateStartDate = $("#update_start_date").val();
     var updateStartTime = $("#update_start_time").val().replace("點 ", ":").replace("分", ":00");
     var updateEndTime = $("#update_end_time").val().replace("點 ", ":").replace("分 ", ":").replace("秒", "");
+    if(updateStartDate == "") {
+      swal("糟糕...", "您還沒選擇播放日期", 'warning');
+      return ;
+    }
+    else if (updateStartTime == "") {
+      swal("糟糕...", "您還沒選擇播放時間", 'warning');
+      return ;
+    }
     var selectedRow = $("#scheduleList tbody tr.success");
     selectedRow.children()[2].innerHTML = updateStartDate;
     selectedRow.children()[3].innerHTML = updateStartTime;
@@ -188,10 +206,34 @@ $(function() {
         'id': $(this).children()[0].innerHTML,
         'startDate': $(this).children()[2].innerHTML,
         'startTime': $(this).children()[3].innerHTML,
+        'endTime': $(this).children()[4].innerHTML
       }
       datas.push(tmp);
     });
-    console.log(datas);
+    $.ajax({
+      url: "<?php echo base_url('Schedule/timeline_confirm'); ?>",
+      type: 'POST',
+      data: {datas: datas},
+      dataType: 'text',
+      success: function(msg) {
+        console.log(msg);
+        $("#btn_save_job").text("送出");
+        $("#btn_save_job").prop('disabled', false);
+        swal({
+          title: "新增成功",
+          type: "success"
+        },function(){
+          location.href="<?php echo base_url('Schedule');?>";
+        });
+      },
+      beforeSend: function() {
+        $("#btn_save_job").text("處理中...");
+        $("#btn_save_job").prop('disabled', true);
+      },
+      error: function(jqxhr, textStatus, errorThrown ) {
+        console.log(jqxhr, textStatus, errorThrown);
+      }
+    });
   })
 
   function HmsToSecond(d) {
