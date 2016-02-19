@@ -220,7 +220,7 @@ $(function() {
         $("#btn_save_job").text("送出");
         $("#btn_save_job").prop('disabled', false);
         swal({
-          title: "新增成功",
+          title: "更新成功",
           type: "success"
         },function(){
           location.href="<?php echo base_url('Schedule');?>";
