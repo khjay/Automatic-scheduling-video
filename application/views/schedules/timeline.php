@@ -17,14 +17,7 @@
   <div class="row">
     <div class="col-lg-12 col-md-12">
       <div class="panel panel-info">
-        <div class="panel-heading">
-          排程列表
-          <div class="pull-right">
-            <div class="btn-group" role="group" aria-label="...">
-              <button type="button" class="btn btn-default btn-sm" id="btn_upd">更新時間</button>
-            </div>
-          </div>
-        </div>
+        <div class="panel-heading">排程列表</div>
         <div class="table-responsive">
           <table class="table table-hover" id="scheduleList">
             <thead>
@@ -36,6 +29,7 @@
                 <th>結束時間</th>
                 <th>排程狀態</th>
                 <th>diff</th>
+                <th>管理</th>
               </tr>
             </thead>
             <tbody>
@@ -48,6 +42,7 @@
                   <td><?php echo $schedule_item['endTime']; ?></td>
                   <td><?php echo formatLabel($schedule_item['startDate'], $schedule_item['startTime'], $schedule_item['endTime']); ?></td>                  
                   <td><?php echo $schedule_item['duration'];?></td>
+                  <td><button type="button" class="btn btn-default btn-sm btn_upd" id="btn_upd">更新時間</button></td>
                 </tr>
               <?php endforeach ?>
             </tbody>
@@ -110,58 +105,56 @@
 </div>
 <script>
 $(function() {
+  var idPost = [];
   $(document).on('click', '#scheduleList tbody tr', function() {
-    if($("#scheduleList tbody tr.success").length) {
-      if($(this).hasClass('success'))
-        $(this).removeClass('success');
+    if($("#scheduleList tbody tr.choose").length) {
+      if($(this).hasClass('choose'))
+        $(this).removeClass('choose');
       else {
-        $("#scheduleList tbody tr").removeClass('success');
-        $(this).addClass('success');      
+        $("#scheduleList tbody tr").removeClass('choose');
+        $(this).addClass('choose');      
       }
     }
     else
-      $(this).addClass('success');
+      $(this).addClass('choose');
   });
 
-  $(document).on('click', '#btn_upd', function() {
-    if(!$("#scheduleList tbody tr.success").length) {
-      swal("糟糕...", "您尚未選取任何列!!!", 'warning');
+  $(document).on('click', '.btn_upd', function() {
+    var selected = $(this).parents('tr');
+    $('#update_start_time').data("DateTimePicker").clear();
+    var selectedTitle = selected.children()[1].innerHTML;
+    var selectedStartDate = selected.children()[2].innerHTML;
+    var selectedStartTime = selected.children()[3].innerHTML;
+    var selectedEndTime = selected.children()[4].innerHTML;
+    var selectedId = selected.children()[0].innerHTML;
+    $("#modal_upd").find('.modal-title').text('編輯排程: ' + selectedTitle);
+    $("#update_title").val(selectedTitle);
+    $("#update_schedule_id").val(selectedId);
+    if(selectedStartDate == "-") {
+      $("#update_start_date").val('');
+      $("#update_start_date").prop('placeholder', '請選擇日期');
+      $("#update_start_date").data("DateTimePicker").clear();
     }
     else {
-      $('#update_start_time').data("DateTimePicker").clear();
-      var selectedTitle = $("#scheduleList tbody tr.success td:nth-child(2)").text();
-      var selectedStartDate = $("#scheduleList tbody tr.success td:nth-child(3)").text();
-      var selectedStartTime = $("#scheduleList tbody tr.success td:nth-child(4)").text();
-      var selectedEndTime = $("#scheduleList tbody tr.success td:nth-child(5)").text();
-      var selectedId = $("#scheduleList tbody tr.success td:nth-child(1)").text();
-      $("#modal_upd").find('.modal-title').text('編輯排程: ' + selectedTitle);
-      $("#update_title").val(selectedTitle);
-      $("#update_schedule_id").val(selectedId);
-      if(selectedStartDate == "-") {
-        $("#update_start_date").val('');
-        $("#update_start_date").prop('placeholder', '請選擇日期');
-        $("#update_start_date").data("DateTimePicker").clear();
-      }
-      else {
-        $('#update_start_date').data("DateTimePicker").date(selectedStartDate);
-        $("update_start_date").val(selectedStartDate);
-      }
-      if(selectedStartTime == "-") {
-        $("#update_start_time").val(''); 
-        $("#update_start_time").prop('placeholder', '請選擇播放時間');
-      }
-      else
-        $("update_start_time").val(selectedStartTime.slice(0, -3).replace(":", "點 ") + "分");
-      $("#update_end_time").val(selectedEndTime);
-      $("#modal_upd").modal('show');
+      console.log(selectedStartDate);
+      $('#update_start_date').data("DateTimePicker").date(selectedStartDate);
+      $("#update_start_date").val(selectedStartDate);
     }
+    if(selectedStartTime == "-") {
+      $("#update_start_time").val(''); 
+      $("#update_start_time").prop('placeholder', '請選擇播放時間');
+    }
+    else
+      $("update_start_time").val(selectedStartTime.slice(0, -3).replace(":", "點 ") + "分");
+    $("#update_end_time").val(selectedEndTime);
+    $("#modal_upd").modal('show');
   })
     
   $('#update_start_date').datetimepicker({
     locale: 'zh-tw',
     viewMode: 'years',
     format: 'YYYY-MM-DD',
-    minDate: new Date().yyyymmdd()                  
+    //minDate: new Date().yyyymmdd()                  
   });
 
   $('#update_start_time').datetimepicker({
@@ -171,7 +164,7 @@ $(function() {
 
   $("#update_start_time").on("dp.change", function (e) {
     var start_seconds = HmsToSecond($("#update_start_time").val().replace("點 ", ":").replace("分", ":00"));
-    var scheduleDuration = parseInt($("#scheduleList tbody tr.success td:nth-child(7)").text());
+    var scheduleDuration = parseInt($("#scheduleList tbody tr.choose td:nth-child(7)").text());
     $("#update_end_time").val(secondsToHms(start_seconds + scheduleDuration).replace(":", "點 ").replace(":", "分 ") + "秒");          
   });
 
@@ -187,11 +180,13 @@ $(function() {
       swal("糟糕...", "您還沒選擇播放時間", 'warning');
       return ;
     }
-    var selectedRow = $("#scheduleList tbody tr.success");
+    var selectedRow = $("#scheduleList tbody tr.choose");
     selectedRow.children()[2].innerHTML = updateStartDate;
     selectedRow.children()[3].innerHTML = updateStartTime;
     selectedRow.children()[4].innerHTML = updateEndTime;
     tableRefactor();
+    idPost.push($("#update_schedule_id").val());
+    console.log(idPost);
     $("#modal_upd").modal('hide');
   });
 
@@ -218,13 +213,15 @@ $(function() {
       }
       else
         time_max = rowStartDate + rowEndTime;
-      tmp = {
-        'id': rowID,
-        'startDate': rowStartDate,
-        'startTime': rowStartTime,
-        'endTime': rowEndTime
+      if(idPost.includes(rowID)) {
+        tmp = {
+          'id': rowID,
+          'startDate': rowStartDate,
+          'startTime': rowStartTime,
+          'endTime': rowEndTime
+        }
+        datas.push(tmp);
       }
-      datas.push(tmp);
     });
     if(scheduleConflict) return false;
     $.ajax({
