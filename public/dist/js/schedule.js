@@ -49,45 +49,40 @@ $(function() {
   });
 
   $(document).on('click', '#playList tbody tr', function() {
-    if($("#playList tbody tr.success").length) {
-      if($(this).hasClass('success'))
-        $(this).removeClass('success');
+    if($("#playList tbody tr.choose").length) {
+      if($(this).hasClass('choose'))
+        $(this).removeClass('choose');
       else {
-        $("#playList tbody tr").removeClass('success');
-        $(this).addClass('success');
+        $("#playList tbody tr").removeClass('choose');
+        $(this).addClass('choose');
       }
     }
     else
-      $(this).addClass('success');
+      $(this).addClass('choose');
   });
 
-  $(document).on('click', '#btn_del', function() {
-    if($("#playList tbody tr.success").length == 0)
-      swal("糟糕...", "您尚未選取任何列!!!", "warning");
-    else {
-      $("#playList tbody tr.success").remove();
+  $(document).on('click', '.btn_del', function() {
+    var chooseIndex = $(this).parents('tr').index();
+    $(this).parents('tr').remove();
+    if(chooseIndex != 0)
       tableRefactor();
-      disabledRowMove();
-    }
+    disabledRowMove();
   });
 
-  $(document).on('click', "#btn_upd", function() {
-    if($("#playList tbody tr.success").length == 0)
-      swal("糟糕...", "您尚未選取任何列!!!", "warning");
-    else {
-      $("#modal_upd").modal('toggle');
-      var selectedTitle = $("#playList tbody tr.success td:nth-child(2)").text();
-      var selectedVideoLength = $("#playList tbody tr.success td:nth-child(3)").text();
-      var selectedStartTime = $("#playList tbody tr.success td:nth-child(4)").text().slice(0, -3).replace(":", "點 ") + "分";
-      var selectedEndTime = $("#playList tbody tr.success td:nth-child(5)").text().replace(":", "點 ").replace(":", "分 ") + "秒"
-      var selectedId = $("#playList tbody tr.success td:nth-child(1)").text();
-      $("#modal_upd").find('.modal-title').text('編輯影片時間: ' + selectedTitle);
-      $("#update_title").val(selectedTitle);
-      $("#update_video_id").val(selectedId);
-      $("#update_video_length").val(selectedVideoLength);
-      $("#update_start_time").val(selectedStartTime);
-      $("#update_end_time").val(selectedEndTime);
-    }
+  $(document).on('click', ".btn_upd", function() {
+    $("#modal_upd").modal('toggle');
+    var selected = $(this).parents('tr');
+    var selectedTitle = selected.children()[1].innerHTML;
+    var selectedVideoLength = selected.children()[2].innerHTML
+    var selectedStartTime = selected.children()[3].innerHTML.slice(0, -3).replace(":", "點 ") + "分";
+    var selectedEndTime = selected.children()[4].innerHTML.replace(":", "點 ").replace(":", "分 ") + "秒"
+    var selectedId = selected.children()[0].innerHTML;
+    $("#modal_upd").find('.modal-title').text('編輯影片時間: ' + selectedTitle);
+    $("#update_title").val(selectedTitle);
+    $("#update_video_id").val(selectedId);
+    $("#update_video_length").val(selectedVideoLength);
+    $("#update_start_time").val(selectedStartTime);
+    $("#update_end_time").val(selectedEndTime);
   });
 
   $('#update_start_time').datetimepicker({
@@ -103,7 +98,7 @@ $(function() {
   $(document).on('click', '#modal_update_confirm', function() {
     var updateStartTime = $("#update_start_time").val().replace("點 ", ":").replace("分", ":00");
     var updateEndTime = $("#update_end_time").val().replace("點 ", ":").replace("分 ", ":").replace("秒", "");
-    var selectedRow = $("#playList tbody tr.success");
+    var selectedRow = $("#playList tbody tr.choose");
     if(selectedRow.index() == 0) {
       selectedRow.children()[3].innerHTML = updateStartTime;
       selectedRow.children()[4].innerHTML = updateEndTime;
