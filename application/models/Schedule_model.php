@@ -11,7 +11,7 @@ class Schedule_model extends CI_Model {
   
   public function get_records($restrict="") {
     //$sql = "select *, TIMESTAMPDIFF(SECOND, sub.startTime, sub.endTime) as s_diff from (select id, title, startDate, concat(startDate, ' ', min(startTime)) as startTime, concat(startDate, ' ', max(endTime)) as endTime from schedules_info, schedules where id = sid group by sid) as sub";
-    $this->db->select('id, title, startDate, startTime, endTime, duration')->from('schedules');
+    $this->db->select('id, title, startDate, startTime, endTime, duration')->from('schedules')->order_by('startDate, startTime');
     $query = $this->db->get();
     if($query -> num_rows() > 0)
       return $query->result_array();
