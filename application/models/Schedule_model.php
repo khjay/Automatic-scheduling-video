@@ -11,9 +11,24 @@ class Schedule_model extends CI_Model {
   
   public function get_records($restrict="") {
     //$sql = "select *, TIMESTAMPDIFF(SECOND, sub.startTime, sub.endTime) as s_diff from (select id, title, startDate, concat(startDate, ' ', min(startTime)) as startTime, concat(startDate, ' ', max(endTime)) as endTime from schedules_info, schedules where id = sid group by sid) as sub";
-    $this->db->select('id, title, startDate, startTime, endTime, duration')->from('schedules')->order_by('startDate, startTime');
+    $this->db->select("id, title, startDate, s.startTime, s.endTime, s.duration, x.startTime as videoStartTime");
+    $this->db->from('schedules as s');
+    $this->db->join('(select sid, vid, startTime from schedules_info order by startTime ) x', 'id=sid');
+    $this->db->group_by('sid');
+    $this->db->order_by('startDate, s.startTime');
     $query = $this->db->get();
     if($query -> num_rows() > 0)
+      return $query->result_array();
+    return array();
+  }
+
+  public function get_timeline_records() {
+    $this->db->select("id, title, startDate, addtime(x.startTime, s.startTime) as mst, addtime(x.startTime, s.endTime) as mnt, duration, x.startTime as videoStartTime");
+    $this->db->from('schedules as s');
+    $this->db->join('(select sid, vid, startTime from schedules_info order by startTime ) x', 'id=sid');
+    $this->db->group_by('sid');
+    $query = $this->db->get();
+    if($query->num_rows() > 0)
       return $query->result_array();
     return array();
   }
@@ -96,7 +111,8 @@ class Schedule_model extends CI_Model {
     $this->db->delete('schedules_info');
     $cache = $this->db->last_query();
     $data = array();
-    foreach($tableRows as $row) {
+    for($i=0; $i<count($tableRows); $i++) {
+      $row = $tableRows[$i];
       $this->db->select('file_name')->from('videos')->where('id', $row['vid']);
       $query = $this->db->get()->result_array();
       $fileName = $query[0]['file_name'];
@@ -106,7 +122,11 @@ class Schedule_model extends CI_Model {
         $scheduleStartTime = substr($startTime, 0, -3);
         $videoStartTime = substr($row['startTime'], 0, -3);
         $totalStart = totalStart($scheduleStartTime, $videoStartTime);
-        $jid = setJob($fileName, "{$d}.{$m}.{$y}", $totalStart);
+        if($i < count($tableRows) -1)
+          $loading = loadingDiff($row['endTime'], $tableRows[$i+1]['startTime']);
+        else
+          $loading = "00:00:00";
+        $jid = setJob($fileName, "{$d}.{$m}.{$y}", $totalStart, $loading);
       }
       else
         $jid = -1;
@@ -132,18 +152,23 @@ class Schedule_model extends CI_Model {
     $schedules_main = $this->input->post('datas', true);
     $schedules_info = array();
     foreach($schedules_main as $schedules_item) {
-      $this->db->select('file_name, startTime, jobID, vid')->from('schedules_info');
+      $this->db->select('file_name, startTime, endTime, jobID, vid')->from('schedules_info');
       $this->db->join('videos', 'videos.id = schedules_info.vid');
       $this->db->where('sid', $schedules_item['id']);
       $query = $this->db->get();
       $info_datas = $query->result_array();
       list($y, $m, $d) = explode('-', $schedules_item['startDate']);
       $scheduleStartTime = substr($schedules_item['startTime'], 0, -3);
-      foreach($info_datas as $row) {
+      for($i=0; $i<count($info_datas); $i++) {
+        $row = $info_datas[$i];
         $videoStartTime = substr($row['startTime'], 0, -3);
         $totalStart = totalStart($scheduleStartTime, $videoStartTime);
         rmJob($row['jobID']);
-        $jid = setJob($row['file_name'], "{$d}.{$m}.{$y}", $totalStart);
+        if($i < count($info_datas)-1)
+          $loading = loadingDiff($row['endTime'], $info_datas[$i+1]['startTime']);
+        else
+          $loading = "00:00:00";
+        $jid = setJob($row['file_name'], "{$d}.{$m}.{$y}", $totalStart, $loading);
         $this->db->where(array('sid' => $schedules_item['id'], 'vid' => $row['vid']));
         $this->db->update('schedules_info', array('jobID' => $jid));
         $cache = $this->db->last_query();

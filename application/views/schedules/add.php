@@ -9,6 +9,12 @@
   .moveDown {
     margin-left: 5px;
   }
+  .btn_upd {
+    margin-left: 5px;
+  }
+  .btn_del {
+    margin-left: 5px;
+  }
 </style>
 <div id="page-wrapper">
   <div class="container-fluid">
@@ -44,8 +50,6 @@
                           <div class="pull-right">
                             <div class="btn-group" role="group" aria-label="...">
                               <button type="button" class="btn btn-default btn-sm" id="btn_add" data-toggle="modal" data-target="#modal_add">加入</button>
-                              <button type="button" class="btn btn-default btn-sm" id="btn_upd">編輯</button>
-                              <button type="button" class="btn btn-default btn-sm" id="btn_del">刪除</button>
                               <button type="button" class="btn btn-default btn-sm" id="btn_setting" data-toggle="modal" data-target="#modal_set">設定</button>
                             </div>
                           </div>

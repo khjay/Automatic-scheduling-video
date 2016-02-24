@@ -1,6 +1,7 @@
 <style>
 #scheduleList tr > *:nth-child(1),
-#scheduleList tr > *:nth-child(7) {
+#scheduleList tr > *:nth-child(7),
+#scheduleList tr > *:nth-child(8) {
   display: none;
 }
 </style>
@@ -28,7 +29,8 @@
                 <th>開始時間</th>
                 <th>結束時間</th>
                 <th>排程狀態</th>
-                <th>diff</th>
+                <th>duration</th>
+                <th>videoStartTime</th>
                 <th>管理</th>
               </tr>
             </thead>
@@ -38,10 +40,11 @@
                   <td><?php echo $schedule_item['id']; ?></td>
                   <td><?php echo $schedule_item['title']; ?></td>
                   <td><?php echo $schedule_item['startDate']; ?></td>
-                  <td><?php echo $schedule_item['startTime']; ?></td>
-                  <td><?php echo $schedule_item['endTime']; ?></td>
-                  <td><?php echo formatLabel($schedule_item['startDate'], $schedule_item['startTime'], $schedule_item['endTime']); ?></td>                  
+                  <td><?php echo $schedule_item['mst']; ?></td>
+                  <td><?php echo $schedule_item['mnt']; ?></td>
+                  <td><?php echo formatLabel($schedule_item['startDate'], $schedule_item['mst'], $schedule_item['mnt']); ?></td>
                   <td><?php echo $schedule_item['duration'];?></td>
+                  <td><?php echo $schedule_item['videoStartTime'];?></td>
                   <td><button type="button" class="btn btn-default btn-sm btn_upd" id="btn_upd">更新時間</button></td>
                 </tr>
               <?php endforeach ?>
@@ -172,6 +175,9 @@ $(function() {
     var updateStartDate = $("#update_start_date").val();
     var updateStartTime = $("#update_start_time").val().replace("點 ", ":").replace("分", ":00");
     var updateEndTime = $("#update_end_time").val().replace("點 ", ":").replace("分 ", ":").replace("秒", "");
+    var videoStartTime = $("#scheduleList tbody tr.choose td:nth-child(8)").text();
+    updateStartTime =secondsToHms(HmsToSecond(updateStartTime)+HmsToSecond(videoStartTime));
+    updateEndTime =secondsToHms(HmsToSecond(updateEndTime)+HmsToSecond(videoStartTime));
     if(updateStartDate == "") {
       swal("糟糕...", "您還沒選擇播放日期", 'warning');
       return ;
@@ -186,7 +192,6 @@ $(function() {
     selectedRow.children()[4].innerHTML = updateEndTime;
     tableRefactor();
     idPost.push($("#update_schedule_id").val());
-    console.log(idPost);
     $("#modal_upd").modal('hide');
   });
 
@@ -205,6 +210,7 @@ $(function() {
       var rowStartDate = $(this).children()[2].innerHTML;
       var rowStartTime = $(this).children()[3].innerHTML;
       var rowEndTime = $(this).children()[4].innerHTML;
+      var videoStartTime = $(this).children()[7].innerHTML;
       if(rowStartDate == "-" && rowStartTime == "-") return ;
       if(rowStartDate + rowStartTime < time_max) {
         sweetAlert("糟糕...", "您的排程：" + rowTitle + " 似乎與其他排程的播放時間衝突", "error");
@@ -217,13 +223,14 @@ $(function() {
         tmp = {
           'id': rowID,
           'startDate': rowStartDate,
-          'startTime': rowStartTime,
-          'endTime': rowEndTime
+          'startTime': secondsToHms(HmsToSecond(rowStartTime)-HmsToSecond(videoStartTime)),
+          'endTime': secondsToHms(HmsToSecond(rowEndTime)-HmsToSecond(videoStartTime))
         }
         datas.push(tmp);
       }
     });
     if(scheduleConflict) return false;
+    console.log(datas);
     $.ajax({
       url: "<?php echo base_url('Schedule/timeline_confirm'); ?>",
       type: 'POST',

@@ -64,9 +64,9 @@
                   <tr>
                     <td><?php echo $schedule_item['title']; ?></td>
                     <td><?php echo $schedule_item['startDate']; ?></td>
-                    <td><?php echo $schedule_item['startTime']; ?></td>
-                    <td><?php echo $schedule_item['endTime']; ?></td>
-                    <td><?php echo formatLabel($schedule_item['startDate'], $schedule_item['startTime'], $schedule_item['endTime']); ?></td>
+                    <td><?php echo $schedule_item['mst']; ?></td>
+                    <td><?php echo $schedule_item['mnt']; ?></td>
+                    <td><?php echo formatLabel($schedule_item['startDate'], $schedule_item['mst'], $schedule_item['mnt']); ?></td>
                     <td>
                       <a href="<?php echo base_url('Schedule/update/' . $schedule_item['id']);?>" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="編輯影片清單">
                         <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>

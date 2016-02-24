@@ -28,8 +28,12 @@ class Schedule extends CI_Controller {
   public function index() {
     $this->load->view('common/head');
     $this->load->view('common/menu');
-    $restrict = $this->input->post("search_title", TRUE); $schedule_data = $this->Schedule_model->get_records($restrict);
-    $schedule_data = $this->Schedule_model->get_records($restrict);
+    $restrict = $this->input->post("search_title", TRUE); 
+    $schedule_data = $this->Schedule_model->get_timeline_records($restrict);
+    foreach($schedule_data as $key => $value) {
+      if(is_null($value['mst'])) $schedule_data[$key]['mst'] = '-';
+      if(is_null($value['mnt'])) $schedule_data[$key]['mnt'] = '-';
+    }
     $data = array(
       'schedule_data'=> count($schedule_data) == 0 ?  array() : $schedule_data ,
     );
@@ -81,7 +85,11 @@ class Schedule extends CI_Controller {
   public function timeline() {
     $this->load->view('common/head');
     $this->load->view('common/menu');
-    $schedule_data = $this->Schedule_model->get_records();
+    $schedule_data = $this->Schedule_model->get_timeline_records();
+    foreach($schedule_data as $key => $value) {
+      if(is_null($value['mst'])) $schedule_data[$key]['mst'] = '-';
+      if(is_null($value['mnt'])) $schedule_data[$key]['mnt'] = '-';
+    }
     $data = array(
       'schedule_data'=> count($schedule_data) == 0 ?  array() : $schedule_data ,
     );

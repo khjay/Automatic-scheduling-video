@@ -92,9 +92,9 @@ if ( ! function_exists('formatLabel') ) {
 }
 
 if (! function_exists('setJob') ) {
-  function setJob($fileName, $startDate, $startTime) {
+  function setJob($fileName, $startDate, $startTime, $loading) {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:20001/unet/video_at?file_name={$fileName}&start_date={$startDate}&start_time={$startTime}");
+    curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:20001/unet/video_at?file_name={$fileName}&start_date={$startDate}&start_time={$startTime}&loading={$loading}");
     curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
     $result = curl_exec($ch);
@@ -129,5 +129,27 @@ if (! function_exists('totalStart') ) {
     else
       $M = floor($total/60);
     return $H . ":" . $M;
+  }
+}
+if (! function_exists('loadingDiff') ) {
+  function loadingDiff($t1, $t2) {
+    list($h1, $m1, $s1) = explode(":", $t1);
+    list($h2, $m2, $s2) = explode(":", $t2);
+    $diff = abs( ($h1*3600+$m1*60+$s1) - ($h2*3600+$m2*60+$s2) );
+    if($diff / 3600 < 10)
+      $H = "0".floor($diff/3600);
+    else
+      $H = floor($diff/3600);
+    $diff %= 3600;
+    if($diff / 60 < 10)
+      $M = "0".floor($diff/60);
+    else
+      $M = floor($total/60);
+    $diff %= 60;
+    if($diff < 10)
+      $S = "0".$diff;
+    else
+      $S = $diff;
+    return $H . ":" . $M . ":" . $S;
   }
 }
