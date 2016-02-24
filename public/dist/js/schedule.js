@@ -38,7 +38,8 @@ $(function() {
     $.each(videoList.rows('.selected').data(), function(key, value) {
       var moveUp = "<button type='button' class='btn btn-default moveUp'><span class='glyphicon glyphicon-arrow-up' aria-hidden='true'></span>上移</button>";
       var moveDown = "<button type='button' class='btn btn-default moveDown'><span class='glyphicon glyphicon-arrow-down' aria-hidden='true'></span>下移</button>";
-      var tr2Append = "<tr><td>" + value[0] + "</td><td>" + value[1] + "</td><td>" + value[2] + "</td><td></td><td></td><td>" + moveUp + moveDown + "</td></tr>";
+      var btnOptions = "<button type='button' class='btn btn-default btn_upd'><span class='glyphicon glyphicon-edit'>更新</button><button type='button' class='btn btn-default btn_del'><span class='glyphicon glyphicon-trash'>刪除</button>";
+      var tr2Append = "<tr><td>" + value[0] + "</td><td>" + value[1] + "</td><td>" + value[2] + "</td><td></td><td></td><td>" + moveUp + moveDown + btnOptions + "</td></tr>";
       $("#playList tbody").append(tr2Append);
     });
     videoList.rows('.selected').deselect();
