@@ -48,7 +48,7 @@ class Schedule_model extends CI_Model {
       $main = $query->result_array();
     else
       $main = array();
-    $tmp_cache = $this->db->last_query();
+    $cache = $this->db->last_query();
     $this->db->select('vid, title, startTime, endTime, video_length')->from('schedules_info');
     $this->db->join('videos', 'videos.id = schedules_info.vid');
     $this->db->where('sid', $id);
@@ -68,11 +68,6 @@ class Schedule_model extends CI_Model {
     $startDate = trim($this->input->post('startDate', TRUE));
     $tableRows = $this->input->post('tableRow', TRUE);
     $duration = strtotime($tableRows[count($tableRows)-1]['endTime']) - strtotime($tableRows[0]['startTime']);
-    $data = array(
-      'title' => $title,
-      'description' => $description,
-      'duration'  => $duration
-    );
     if($startTime == "-" && $startDate == "-")
       $settingJob = false;
     else
@@ -82,7 +77,7 @@ class Schedule_model extends CI_Model {
     $this->db->update('schedules', $data); 
     $cache = $this->db->last_query();
 
-    // if playTime was setted, then delete at job
+    // if playTime was set, then delete `at` job
     if($settingJob) {  
       $this->db->select("jobID")->from('schedules_info');
       $this->db->where('sid', $id);
@@ -90,7 +85,8 @@ class Schedule_model extends CI_Model {
       foreach($jids as $jid)
         rmJob($jid['jobID']);
     }
-
+    
+    // delete old schedule's videos
     $this->db->where('sid', $id);
     $this->db->delete('schedules_info');
     $cache = $this->db->last_query();
@@ -100,11 +96,12 @@ class Schedule_model extends CI_Model {
       $this->db->select('file_name')->from('videos')->where('id', $row['vid']);
       $query = $this->db->get()->result_array();
       $fileName = $query[0]['file_name'];
-      list($h, $mm, $s) = explode(":", $row['startTime']);
       if($settingJob) {
         list($y, $m,  $d) = explode("-", $startDate);
         $scheduleStartTime = substr($startTime, 0, -3);
         $videoStartTime = substr($row['startTime'], 0, -3);
+
+        // schedule first video play time = schedule startTime + video startTime
         $totalStart = totalStart($scheduleStartTime, $videoStartTime);
         if($i < count($tableRows) -1)
           $loading = loadingDiff($row['endTime'], $tableRows[$i+1]['startTime']);
