@@ -219,7 +219,8 @@ $(function() {
       }
       else
         time_max = rowStartDate + rowEndTime;
-      if(idPost.includes(rowID)) {
+//    if(idPost.includes(rowID)) {
+      if(jQuery.inArray(rowID, idPost) != -1) {
         tmp = {
           'id': rowID,
           'startDate': rowStartDate,
