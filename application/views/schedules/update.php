@@ -77,7 +77,7 @@
                                 <td>
                                     <button type='button' class='btn btn-default moveUp'><span class='glyphicon glyphicon-arrow-up' aria-hidden="true"></span>上移</button>
                                     <button type='button' class='btn btn-default moveDown'><span class='glyphicon glyphicon-arrow-down' aria-hidden="true"></span>下移</button>
-                                    <button type="button" class="btn btn-default btn_upd"><span class='glyphicon glyphicon-edit'>更新</button>
+                                    <button type="button" class="btn btn-default btn_upd"><span class='glyphicon glyphicon-edit'>修改起始時間</button>
                                     <button type="button" class="btn btn-default btn_del"><span class="glyphicon glyphicon-trash">刪除</button>
                                 </td>
                               </tr>
