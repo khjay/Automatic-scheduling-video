@@ -77,11 +77,6 @@ class Schedule extends CI_Controller {
     echo $this->Schedule_model->remove_schedule($id);
   }
 
-  public function test() {
-    echo shell_exec("which at");
-    echo 'haha';
-  }
-
   public function timeline() {
     $this->load->view('common/head');
     $this->load->view('common/menu');
