@@ -9,23 +9,10 @@ class Schedule_model extends CI_Model {
     $ci->load->helper('custom_helper');
   }
   
-  public function get_records($restrict="") {
-    //$sql = "select *, TIMESTAMPDIFF(SECOND, sub.startTime, sub.endTime) as s_diff from (select id, title, startDate, concat(startDate, ' ', min(startTime)) as startTime, concat(startDate, ' ', max(endTime)) as endTime from schedules_info, schedules where id = sid group by sid) as sub";
-    $this->db->select("id, title, startDate, s.startTime, s.endTime, s.duration, x.startTime as videoStartTime");
-    $this->db->from('schedules as s');
-    $this->db->join('(select sid, vid, startTime from schedules_info order by startTime ) x', 'id=sid');
-    $this->db->group_by('sid');
-    $this->db->order_by('startDate, s.startTime');
-    $query = $this->db->get();
-    if($query -> num_rows() > 0)
-      return $query->result_array();
-    return array();
-  }
-
   public function get_timeline_records() {
     $this->db->select("id, title, startDate, addtime(x.startTime, s.startTime) as mst, addtime(x.startTime, s.endTime) as mnt, duration, x.startTime as videoStartTime");
     $this->db->from('schedules as s');
-    $this->db->join('(select sid, vid, startTime from schedules_info order by startTime ) x', 'id=sid');
+    $this->db->join('(select sid, startTime from schedules_info order by startTime ) x', 'id=sid');
     $this->db->group_by('sid');
     $query = $this->db->get();
     if($query->num_rows() > 0)
@@ -43,17 +30,14 @@ class Schedule_model extends CI_Model {
       'description' => $description,
       'duration' => $duration
     );
+    // main data
     $query_result = $this->db->insert('schedules', $data);
     $sid = $this->db->insert_id();
-    $tmp_cache = $this->db->last_query();
+    $cache = $this->db->last_query();
     $data = array();
-    foreach($tableRows as $row) {
-      $this->db->select('file_name')->from('videos')->where('id', $row['vid']);
-      $query = $this->db->get()->result_array();
-      $fileName = $query[0]['file_name'];
+    foreach($tableRows as $row) 
       $data[] = array('sid'=>$sid, 'vid'=>$row['vid'], 'startTime'=>$row['startTime'], 'endTime'=>$row['endTime']);
-    }
-    $tmp_cache = $this->db->last_query();
+    // videos data
     $this->db->insert_batch('schedules_info', $data);
   }
 
