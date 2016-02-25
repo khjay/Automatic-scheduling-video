@@ -123,7 +123,7 @@ class Schedule_model extends CI_Model {
     $jids = $this->db->get()->result_array();
     foreach($jids as $jid)
       rmJob($jid['jobID']);
-    $tmp_cache = $this->db->last_query();
+    $cache = $this->db->last_query();
     $this->db->where('id', $id);
     $this->db->delete('schedules');
     echo $this->db->affected_rows();
@@ -156,6 +156,5 @@ class Schedule_model extends CI_Model {
       }
     }
     $this->db->update_batch('schedules', $schedules_main, 'id'); 
-    //$this->db->update_batch('schedules_info', $schedules_info, array('sid, vid')); 
   }
 }
